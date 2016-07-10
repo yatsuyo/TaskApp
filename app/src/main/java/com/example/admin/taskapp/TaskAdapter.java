@@ -9,6 +9,11 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
 /**
  * Created by admin on 2016/07/10.
  */
@@ -37,7 +42,7 @@ public class TaskAdapter extends BaseAdapter{
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return mTaskArrayList.get(position).getId();
     }
 
     @Override
@@ -50,7 +55,11 @@ public class TaskAdapter extends BaseAdapter{
         TextView textView2 = (TextView) convertView.findViewById(android.R.id.text2);
 
         //後でTaskクラスから情報を取得するように変更する
-        textView1.setText(mTaskArrayList.get(position));
+        textView1.setText(mTaskArrayList.get(position).getTitle());
+
+        SimpleDateFormat simpledateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.JAPANESE);
+        Date date = mTaskArrayList.get(position).getDate();
+        textView2.setText(SimpleDateFormat.format(date));
 
         return convertView;
     }

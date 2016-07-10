@@ -12,11 +12,28 @@ import android.widget.ListView;
 //import android.view.MenuItem;
 
 import java.util.ArrayList;
+import java.util.Date;
+
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
+import io.realm.Sort;
+
 
 public class MainActivity extends AppCompatActivity {
+
+    private Realm mRealm;
+    private RealmResults<Task> mTaskRealmResults;
+    private RealmChangeListener mRealmListener = new RealmChangeListener(){
+        @Override
+        public void onChange(){
+            reloadListView();
+        }
+    };
+
+
     private ListView mListView;
     private TaskAdapter mTaskAdapter;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,19 +52,42 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Realmの設定
+        mRealm = Realm.getDefaultInstance();
+        mTaskRealmResults = mRealm.where(Task.class).findAll();
+        mTaskRealmResults.sort("date", Sort.DESCENDING);
+        mRealm.addChangeListener(mRealmListener);
+
+
+
         // ListViewの設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
         mListView = (ListView) findViewById(R.id.listView1);
 
         //ListViewをタップしたときの処理
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                //入力・編集する画面に遷移させる
+                //return true;
+            }
+        });
+
+        //ListViewを長押したときの処理
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                //タスクを削除する。
+                //タスクを削除する
                 return true;
             }
         });
+
+        if(mTaskRealmResults.size() == 0){
+            //アプリ起動時にタスクの数が０出逢った場合には表示テスト用のタスクを表示させる
+            addTaskForTest();
+        }
 
         reloadListView();
     }
@@ -55,6 +95,19 @@ public class MainActivity extends AppCompatActivity {
     private void reloadListView(){
         //後でTaskクラスに変更する
         ArrayList<String> taskArrayList = new ArrayList<>();
+
+        for (int i = 0; i < mTaskRealmResults.size(); i++){
+            Task task = new Task();
+
+            task.setId(mTaskRealmResults.get(i).getId());
+            task.setTitle(mTaskRealmResults.get(i).getTitle());
+            task.setContents(mTaskRealmResults.get(i).getContents());
+            task.setDate(mTaskRealmResults.get(i).getDate());
+
+            taskArrayList.add(task);
+        }
+
+
         //taskArrayList.add("aaa");
         //taskArrayList.add("bbb");
         //taskArrayList.add("ccc");
@@ -62,6 +115,24 @@ public class MainActivity extends AppCompatActivity {
         mTaskAdapter.setTaskArrayList(taskArrayList);
         mListView.setAdapter(mTaskAdapter);
         mTaskAdapter.notifyDataSetChanged();
+
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+
+        mRealm.close();
+    }
+
+    private void addTaskForTest(){
+        Task task = new Task();
+        task.setTitle("作業");
+        task.setContents("プログラムを書いてPUSHする");
+        task.setDate(new Date());
+        mRealm.beginTransaction();
+        mRealm.copyToRealmOrUpdate(task);
+        mRealm.commitTransaction();
 
     }
 }

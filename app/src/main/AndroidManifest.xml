@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.admin.taskapp">
+    
+    <uses-permission android:name="android.permission\WAKE_LOCK"/>
+
 
     <application
         android:name=".TaskApp"
@@ -28,6 +31,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.admin.taskapp.MainActivity"/>
         </activity>
+
+        <receiver android:name=".TaskAlarmReceiver"/>
+
     </application>
 
 </manifest>

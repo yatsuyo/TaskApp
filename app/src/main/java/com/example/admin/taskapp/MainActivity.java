@@ -1,5 +1,7 @@
 package com.example.admin.taskapp;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,7 +17,7 @@ import android.widget.ListView;
 //import android.view.MenuItem;
 
 import java.util.ArrayList;
-import java.util.Date;
+//import java.util.Date;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -78,12 +80,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        //ListViewを長押したときの処理
+        // ListViewを長押ししたときの処理
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                //タスクを削除する
+                // タスクを削除する
+
                 final Task task = (Task) parent.getAdapter().getItem(position);
 
                 // ダイアログを表示する
@@ -101,6 +104,17 @@ public class MainActivity extends AppCompatActivity {
                         results.clear();
                         mRealm.commitTransaction();
 
+                        Intent resultIntent = new Intent(getApplicationContext(), TaskAlarmReceiver.class);
+                        PendingIntent resultPendingIntent = PendingIntent.getBroadcast(
+                                MainActivity.this,
+                                task.getId(),
+                                resultIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                        );
+
+                        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                        alarmManager.cancel(resultPendingIntent);
+
                         reloadListView();
                     }
                 });
@@ -112,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
 
         //if(mTaskRealmResults.size() == 0){
         //    //アプリ起動時にタスクの数が０出逢った場合には表示テスト用のタスクを表示させる
